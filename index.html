@@ -106,7 +106,7 @@
         <!-- 1. Dades del docent -->
         <div class="form-grid-2">
           <div class="form-group">
-            <label for="nom"><i class="fa-regular fa-user" style="color: var(--primary);"></i> Nom i Cognom *</label>
+            <label for="nom"><i class="fa-regular fa-user" style="color: var(--primary);"></i> Nom i cognom *</label>
             <div class="input-wrapper">
               <input type="text" id="nom" name="nom" placeholder="El teu nom" required>
               <i class="fa-regular fa-user field-icon"></i>
@@ -116,7 +116,7 @@
           <div class="form-group">
             <label for="email"><i class="fa-regular fa-envelope" style="color: var(--primary);"></i> Correu *</label>
             <div class="input-wrapper">
-              <input type="email" id="email" name="email" placeholder="nom@escola.cat" required>
+              <input type="email" id="email" name="email" placeholder="nom@eugenidors.com" required>
               <i class="fa-regular fa-envelope field-icon"></i>
             </div>
           </div>
@@ -166,14 +166,14 @@
 
         <!-- 4. Nivell d'urgència -->
         <div class="form-group">
-          <label><i class="fa-solid fa-triangle-exclamation" style="color: var(--primary);"></i> Nivell d'Urgència *</label>
+          <label><i class="fa-solid fa-triangle-exclamation" style="color: var(--primary);"></i> Nivell d'urgència *</label>
           <div class="priority-selector">
             <div class="priority-option">
-              <input type="radio" id="p-low" name="prioritat" value="Normal" checked>
+              <input type="radio" id="p-low" name="prioritat" value="NORMAL" checked>
               <label for="p-low" class="p-low">🟢 Normal</label>
             </div>
             <div class="priority-option">
-              <input type="radio" id="p-med" name="prioritat" value="Mitjana">
+              <input type="radio" id="p-med" name="prioritat" value="MITJANA">
               <label for="p-med" class="p-med">🟡 Mitjana</label>
             </div>
             <div class="priority-option">
@@ -186,7 +186,7 @@
         <!-- 5. Descripció amb expansió automàtica -->
         <div class="form-group">
           <label for="descripcio"><i class="fa-regular fa-comment-dots" style="color: var(--primary);"></i> Descripció de l'avaria *</label>
-          <textarea id="descripcio" name="descripcio" placeholder="Explica detalladament què passa..." required oninput="autoAjustarTextarea(this)"></textarea>
+          <textarea id="descripcio" name="descripcio" placeholder="Explica-ho detalladament..." required oninput="autoAjustarTextarea(this)"></textarea>
         </div>
 
         <!-- 6. Foto opcional -->
@@ -206,16 +206,16 @@
         </div>
 
         <button type="submit" id="btnSubmit" class="btn-submit">
-          <i class="fa-solid fa-paper-plane"></i> Enviar Incidència
+          <i class="fa-solid fa-paper-plane"></i> Enviar incidència
         </button>
       </form>
 
       <!-- Pantalla d'èxit -->
       <div id="successView" class="success-view">
         <div class="success-badge"><i class="fa-solid fa-check"></i></div>
-        <h2 style="font-size: 1.25rem; font-weight: 800;">Incidència Rebuda!</h2>
+        <h2 style="font-size: 1.25rem; font-weight: 800;">Incidència notificada</h2>
         <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0.4rem 0 1.2rem;">
-          L'equip TIC l'ha rebut i s'ha enviat un justificant al teu correu: <strong id="docentEmailConfirm" style="color: var(--text-main);"></strong>.
+          Incidència rebuda, has rebut un justificant al teu correu: <strong id="docentEmailConfirm" style="color: var(--text-main);"></strong>.
         </p>
         <button type="button" onclick="reiniciarFormulari()" class="btn-secondary">
           <i class="fa-solid fa-rotate-left"></i> Enviar-ne una altra
@@ -226,8 +226,8 @@
   </main>
 
   <script>
-    // ⚙️ PEGA AQUÍ LA TEVA PUBLIC KEY D'EMAILJS
-    emailjs.init("LA_TEVA_PUBLIC_KEY");
+    // ⚙️ ENGANXA AQUÍ LA TEVA PUBLIC KEY D'EMAILJS
+    emailjs.init("twXEOcpPVUAkMtY2-");
 
     let base64Image = "";
     const tempsInici = Date.now(); // Per al filtre antispam de temps
@@ -328,8 +328,8 @@
       btn.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin"></i> Enviant...`;
 
       // ⚙️ PEGA AQUÍ ELS TEUS IDENTIFICADORS
-      const SERVICE_ID = "EL_TEU_SERVICE_ID";
-      const TEMPLATE_ID = "EL_TEU_TEMPLATE_ID";
+      const SERVICE_ID = "service_2169026";
+      const TEMPLATE_ID = "template_4erva7p";
 
       const templateParams = {
         nom: nom,
@@ -350,11 +350,11 @@
         })
         .catch((error) => {
           console.error("Error EmailJS:", error);
-          alert("Hi ha hagut un problema en enviar l'avís. Comprova la connexió a internet.");
+          alert("Hi ha hagut un problema. Comprova la connexió a internet.");
         })
         .finally(() => {
           btn.disabled = false;
-          btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Enviar Incidència`;
+          btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Enviar incidència`;
         });
     });
 
