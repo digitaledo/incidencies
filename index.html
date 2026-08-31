@@ -42,20 +42,22 @@
 
     .content-body { padding: 0.8rem 1.5rem 2rem; }
     .form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
-    .form-group { margin-bottom: 1.05rem; }
+    .form-group { margin-bottom: 1.05rem; position: relative; }
     .form-group label { display: flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; font-weight: 700; color: #334155; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.4rem; }
 
     .input-wrapper { position: relative; display: flex; align-items: center; }
     .input-wrapper i.field-icon { position: absolute; left: 0.9rem; color: var(--text-muted); font-size: 0.9rem; pointer-events: none; }
 
     input, select, textarea { width: 100%; padding: 0.8rem 0.9rem 0.8rem 2.4rem; background: #f8fafc; border: 1.5px solid var(--border); border-radius: var(--radius-md); font-family: inherit; font-size: 0.9rem; font-weight: 500; color: var(--text-main); outline: none; transition: all 0.2s; }
-    
-    /* Textarea amb auto-creixement */
     textarea { padding: 0.8rem 0.9rem; resize: none; min-height: 85px; overflow-y: hidden; }
 
     input:focus, select:focus, textarea:focus { background: #ffffff; border-color: var(--primary); box-shadow: 0 0 0 3px var(--focus-ring); }
 
-    /* Recordar dades checkbox */
+    /* Estil d'error per al camp correu */
+    .input-error { border-color: #ef4444 !important; background-color: #fffaf0 !important; box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important; }
+    .error-msg { color: #dc2626; font-size: 0.75rem; font-weight: 600; margin-top: 0.3rem; display: none; }
+
+    /* Recordar dades */
     .remember-box { display: flex; align-items: center; gap: 0.45rem; margin-top: -0.4rem; margin-bottom: 1rem; font-size: 0.78rem; color: var(--text-muted); font-weight: 600; cursor: pointer; }
     .remember-box input { width: auto; cursor: pointer; }
 
@@ -95,9 +97,9 @@
 
     <div class="content-body">
       
-      <form id="incidentForm">
+      <form id="incidentForm" novalidate>
         
-        <!-- Camp Honeypot invisible per a bots (Antispam) -->
+        <!-- Camp Honeypot antispam -->
         <div style="opacity: 0; position: absolute; top: 0; left: 0; height: 0; width: 0; z-index: -1; overflow: hidden;">
           <label for="website_check">No omplis aquest camp</label>
           <input type="text" id="website_check" name="website_check" tabindex="-1" autocomplete="off">
@@ -116,9 +118,10 @@
           <div class="form-group">
             <label for="email"><i class="fa-regular fa-envelope" style="color: var(--primary);"></i> Correu *</label>
             <div class="input-wrapper">
-              <input type="email" id="email" name="email" placeholder="nom@eugenidors.com" required>
+              <input type="email" id="email" name="email" placeholder="nom@escola.cat" required oninput="netejarErrorCorreu()">
               <i class="fa-regular fa-envelope field-icon"></i>
             </div>
+            <p id="emailError" class="error-msg">Introdueix un correu vàlid (ex: nom@eugenidors.com)</p>
           </div>
         </div>
 
@@ -166,7 +169,7 @@
 
         <!-- 4. Nivell d'urgència -->
         <div class="form-group">
-          <label><i class="fa-solid fa-triangle-exclamation" style="color: var(--primary);"></i> Nivell d'urgència *</label>
+          <label><i class="fa-solid fa-triangle-exclamation" style="color: var(--primary);"></i> Nivell d'Urgència *</label>
           <div class="priority-selector">
             <div class="priority-option">
               <input type="radio" id="p-low" name="prioritat" value="NORMAL" checked>
@@ -186,7 +189,7 @@
         <!-- 5. Descripció amb expansió automàtica -->
         <div class="form-group">
           <label for="descripcio"><i class="fa-regular fa-comment-dots" style="color: var(--primary);"></i> Descripció de l'avaria *</label>
-          <textarea id="descripcio" name="descripcio" placeholder="Explica-ho detalladament..." required oninput="autoAjustarTextarea(this)"></textarea>
+          <textarea id="descripcio" name="descripcio" placeholder="Explica detalladament què passa..." required oninput="autoAjustarTextarea(this)"></textarea>
         </div>
 
         <!-- 6. Foto opcional -->
@@ -213,12 +216,12 @@
       <!-- Pantalla d'èxit -->
       <div id="successView" class="success-view">
         <div class="success-badge"><i class="fa-solid fa-check"></i></div>
-        <h2 style="font-size: 1.25rem; font-weight: 800;">Incidència notificada</h2>
+        <h2 style="font-size: 1.25rem; font-weight: 800;">Incidència rebuda</h2>
         <p style="font-size: 0.88rem; color: var(--text-muted); margin: 0.4rem 0 1.2rem;">
           Incidència rebuda, has rebut un justificant al teu correu: <strong id="docentEmailConfirm" style="color: var(--text-main);"></strong>.
         </p>
         <button type="button" onclick="reiniciarFormulari()" class="btn-secondary">
-          <i class="fa-solid fa-rotate-left"></i> Enviar-ne una altra
+          <i class="fa-solid fa-rotate-left"></i> Notificar-ne una altra
         </button>
       </div>
 
@@ -226,13 +229,25 @@
   </main>
 
   <script>
-    // ⚙️ ENGANXA AQUÍ LA TEVA PUBLIC KEY D'EMAILJS
+    // ⚙️ PUBLIC KEY D'EMAILJS
     emailjs.init("twXEOcpPVUAkMtY2-");
 
     let base64Image = "";
-    const tempsInici = Date.now(); // Per al filtre antispam de temps
+    const tempsInici = Date.now();
 
-    // Ajust automàtic d'alçada del textarea
+    // Validació estricta de format de correu
+    function esCorreuValid(email) {
+      const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      return regex.test(email);
+    }
+
+    function netejarErrorCorreu() {
+      const emailInput = document.getElementById("email");
+      const emailError = document.getElementById("emailError");
+      emailInput.classList.remove("input-error");
+      emailError.style.display = "none";
+    }
+
     function autoAjustarTextarea(element) {
       element.style.height = "auto";
       element.style.height = (element.scrollHeight) + "px";
@@ -246,7 +261,6 @@
       document.getElementById("data").value = `${any}-${mes}-${dia}`;
     }
 
-    // Carregar dades prèvies del docent
     window.addEventListener("DOMContentLoaded", () => {
       establirDataAvui();
       const savedNom = localStorage.getItem("docent_nom");
@@ -255,7 +269,6 @@
       if (savedEmail) document.getElementById("email").value = savedEmail;
     });
 
-    // Processar i comprimir foto
     function gestionarFoto(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -304,18 +317,41 @@
     form.addEventListener("submit", function(e) {
       e.preventDefault();
 
-      // 1. FILTRE ANTISPAM HONEYPOT
+      // Antispam
       const botTrap = document.getElementById("website_check").value;
       if (botTrap) return;
 
-      // 2. FILTRE ANTISPAM DE TEMPS (< 1.5 segons)
       const tempsTrigat = (Date.now() - tempsInici) / 1000;
       if (tempsTrigat < 1.5) return;
       
-      const nom = document.getElementById("nom").value.trim();
-      const email = document.getElementById("email").value.trim();
-      const remember = document.getElementById("chkRemember").checked;
+      const nomInput = document.getElementById("nom");
+      const emailInput = document.getElementById("email");
+      const aulaInput = document.getElementById("aula");
+      const serveiInput = document.getElementById("servei");
+      const descripcioInput = document.getElementById("descripcio");
+      const emailError = document.getElementById("emailError");
 
+      const nom = nomInput.value.trim();
+      const email = emailInput.value.trim().toLowerCase();
+      const aula = aulaInput.value.trim();
+      const servei = serveiInput.value;
+      const descripcio = descripcioInput.value.trim();
+
+      // Validació de camps obligatoris
+      if (!nom || !aula || !servei || !descripcio) {
+        alert("Si us plau, omple tots els camps obligatoris marcats amb *.");
+        return;
+      }
+
+      // VALIDACIÓ LOCAL DE CORREU (Evita que EmailJS doni error d'enviament)
+      if (!esCorreuValid(email)) {
+        emailInput.classList.add("input-error");
+        emailError.style.display = "block";
+        emailInput.focus();
+        return;
+      }
+
+      const remember = document.getElementById("chkRemember").checked;
       if (remember) {
         localStorage.setItem("docent_nom", nom);
         localStorage.setItem("docent_email", email);
@@ -335,10 +371,10 @@
         nom: nom,
         email: email,
         data: document.getElementById("data").value,
-        aula: document.getElementById("aula").value,
-        servei: document.getElementById("servei").value,
+        aula: aula,
+        servei: servei,
         prioritat: document.querySelector('input[name="prioritat"]:checked').value,
-        descripcio: document.getElementById("descripcio").value,
+        descripcio: descripcio,
         foto_adjunta: base64Image ? `<br><br><strong>Foto adjunta:</strong><br><img src="${base64Image}" style="max-width: 100%; border-radius: 8px; margin-top: 8px;" />` : ''
       };
 
@@ -350,11 +386,11 @@
         })
         .catch((error) => {
           console.error("Error EmailJS:", error);
-          alert("Hi ha hagut un problema. Comprova la connexió a internet.");
+          alert("Hi ha hagut un problema de connexió en enviar l'avís. Comprova la teva connexió.");
         })
         .finally(() => {
           btn.disabled = false;
-          btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Enviar incidència`;
+          btn.innerHTML = `<i class="fa-solid fa-paper-plane"></i> Enviar Incidència`;
         });
     });
 
@@ -368,6 +404,7 @@
       
       document.getElementById("p-low").checked = true;
       
+      netejarErrorCorreu();
       eliminarFoto();
       establirDataAvui();
       successView.style.display = "none";
